@@ -1,0 +1,14 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfout
+*.tfplan
+
+# Local secrets, see step 10
+.env
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/
