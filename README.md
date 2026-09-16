@@ -65,3 +65,30 @@ Security habits worth adopting from the start:
    [Find account and zone IDs](https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/).
 
 The free plan covers everything in this repo. Do not upgrade.
+
+## Step 3: Put a domain on Cloudflare
+
+Cloudflare needs to be the DNS provider for your domain, so it can point the
+domain at your site and issue the HTTPS certificate. Two ways to get there.
+
+**Buy a new domain.** Cloudflare Registrar sells domains at cost, with DNS
+already set up.
+[Register a domain](https://developers.cloudflare.com/registrar/get-started/register-domain/).
+
+**Move an existing domain.** Keep the domain where it is and change its
+nameservers to Cloudflare's. Cloudflare imports your existing DNS records
+during setup.
+[Full setup guide](https://developers.cloudflare.com/dns/zone-setups/full-setup/setup/).
+Nameserver changes take minutes to a day to spread.
+
+Either way you end up with a **zone** in the dashboard, one per domain. Open
+it and note the **zone id** from the right column of the overview page. You
+now have both ids this repo needs:
+
+| Name       | Looks like                         | Used for                        |
+| ---------- | ---------------------------------- | ------------------------------- |
+| account id | 32 hex characters                  | Pages project, R2 bucket, token |
+| zone id    | 32 hex characters, different value | DNS record                      |
+
+Neither id is a password, but this repo treats them as secrets so they stay
+out of the code.
