@@ -289,3 +289,41 @@ The tokens appear only as `${{ secrets.NAME }}`. Step 9 stores them in GitHub.
 
 From now on, every push to `main` redeploys. Every push to another branch
 shows a plan and touches nothing.
+
+## Step 10: Deploy from your machine
+
+Optional. The workflow does all of this on push. Run it by hand to see a plan
+before pushing, to deploy before the GitHub repo exists, or to run
+`terraform destroy` in step 11.
+
+1. Install Terraform (step 1).
+2. Copy `.env.example` to `.env` and fill in the five values from step 5. The
+   file uses the same names as the GitHub secrets and derives the rest, so
+   Terraform, the R2 backend and Wrangler all read from it. `.env` is ignored
+   by git.
+3. Load it and run Terraform:
+
+   ```sh
+   set -a; source .env; set +a
+   cd infra
+   terraform init -input=false -backend-config=backend.config
+   terraform plan
+   terraform apply
+   cd ..
+   ```
+
+   `init` connects to the same state in R2 that GitHub Actions uses, so your
+   laptop and the workflow see the same picture. A plan that shows
+   "No changes" means the live setup matches the files.
+   [Terraform CLI tutorial](https://developer.hashicorp.com/terraform/tutorials/cli/init).
+
+4. Upload the site. Wrangler reads `CLOUDFLARE_API_TOKEN` and
+   `CLOUDFLARE_ACCOUNT_ID` from the environment, so no `wrangler login` is
+   needed in this shell:
+
+   ```sh
+   npx wrangler pages deploy ./site --project-name=static-hosting-cloudflare-pages --branch=main
+   ```
+
+   Same command the last workflow step runs. Wrangler prints the deployment
+   URL when it finishes.
