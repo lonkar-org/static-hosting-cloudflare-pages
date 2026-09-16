@@ -1,0 +1,71 @@
+name: Plan and deploy
+
+on:
+  push:
+    branches:
+      - "**"
+
+env:
+  TF_VERSION: 1.15.x
+
+# One run at a time. Terraform locks the state, so a second concurrent run
+# would only fail on the lock; queueing it is cleaner.
+concurrency:
+  group: terraform-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan-deploy:
+    name: ${{ github.ref == 'refs/heads/main' && 'plan, apply, deploy' || 'plan' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      # Cloudflare provider
+      TF_VAR_cloudflare_api_token:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      TF_VAR_cloudflare_zone_id:    ${{ secrets.CLOUDFLARE_ZONE_ID }}
+      # Terraform state in R2, read by the s3 backend
+      AWS_ENDPOINT_URL_S3:   https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+      AWS_ACCESS_KEY_ID:     ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_REGION: auto
+    steps:
+      - uses: actions/checkout@v7
+
+      # Build step goes here. This repo ships plain HTML in site/, so there is
+      # nothing to build. With Hugo: `hugo --source site --destination ../dist`
+      # and deploy ./dist below.
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform fmt
+        working-directory: infra
+        run: terraform fmt -check -diff
+
+      - name: Terraform init
+        working-directory: infra
+        run: terraform init -input=false -backend-config=backend.config
+
+      - name: Terraform validate
+        working-directory: infra
+        run: terraform validate
+
+      - name: Terraform plan
+        working-directory: infra
+        run: terraform plan -input=false -out=plan.tfout
+
+      - name: Terraform apply
+        if: github.ref == 'refs/heads/main'
+        working-directory: infra
+        run: terraform apply -input=false -auto-approve plan.tfout
+
+      - name: Deploy to Pages
+        if: github.ref == 'refs/heads/main'
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ./site --project-name=static-hosting-cloudflare-pages --branch=main

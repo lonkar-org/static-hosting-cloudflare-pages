@@ -234,3 +234,30 @@ Resource reference for the Cloudflare plugin:
 [cloudflare_pages_project](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/pages_project),
 [cloudflare_pages_domain](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/pages_domain),
 [cloudflare_dns_record](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/dns_record).
+
+## Step 8: Add the GitHub Actions workflow
+
+GitHub Actions runs commands on GitHub's machines when you push. The steps
+are listed in `.github/workflows/deploy.yml`.
+[Understand GitHub Actions](https://docs.github.com/en/actions/get-started/understand-github-actions).
+
+What the workflow does, in order:
+
+| Step                 | On which branches | What it does                                        |
+| -------------------- | ----------------- | --------------------------------------------------- |
+| `terraform fmt`      | all               | Fails if a `.tf` file is not formatted.             |
+| `terraform init`     | all               | Downloads the Cloudflare plugin, connects to R2.    |
+| `terraform validate` | all               | Checks the files for errors.                        |
+| `terraform plan`     | all               | Prints what would change. Nothing changes yet.      |
+| `terraform apply`    | `main` only       | Applies that plan.                                  |
+| `wrangler pages deploy` | `main` only    | Uploads `site/` to the Pages project.               |
+
+Pushing a branch and opening a pull request gives you the plan in the job
+log. Merge, and `main` applies the same plan. The upload uses Wrangler through
+the official [wrangler-action](https://github.com/cloudflare/wrangler-action).
+
+Edit one thing: `--project-name=static-hosting-cloudflare-pages` on the last step must match
+`project_name` in `infra/terraform.tfvars`.
+
+The tokens appear only as `${{ secrets.NAME }}`. Step 9 stores them in GitHub.
+[Using secrets in GitHub Actions](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions).
