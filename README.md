@@ -327,3 +327,29 @@ before pushing, to deploy before the GitHub repo exists, or to run
 
    Same command the last workflow step runs. Wrangler prints the deployment
    URL when it finishes.
+
+## Step 11: Tear it all down
+
+In reverse order of creation.
+
+1. Remove the Pages project, domain and DNS record. From step 10's shell:
+
+   ```sh
+   cd infra
+   terraform destroy
+   ```
+
+2. Delete the state bucket. It must be empty first; `destroy` leaves a small
+   state file behind.
+
+   ```sh
+   npx wrangler r2 object delete tfstate-demos/static-hosting-cloudflare-pages/infra.tfstate
+   npx wrangler r2 bucket delete tfstate-demos
+   ```
+
+3. Revoke both tokens. R2, **Manage API tokens**; and **My Profile**,
+   **API Tokens**.
+4. Delete the five GitHub secrets, or the repository.
+
+The domain stays. Cloudflare Registrar domains renew yearly until you turn
+auto-renew off in the Registrar page.
