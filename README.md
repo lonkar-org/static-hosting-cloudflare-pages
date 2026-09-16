@@ -92,3 +92,36 @@ now have both ids this repo needs:
 
 Neither id is a password, but this repo treats them as secrets so they stay
 out of the code.
+
+## Step 4: Turn on R2 and create the state bucket
+
+Terraform writes down what it created in a file called **state**. GitHub
+Actions runs on a fresh machine every time, so the state has to live
+somewhere shared. This repo stores it in **R2**, Cloudflare's file storage.
+[What Terraform state is](https://developer.hashicorp.com/terraform/language/state).
+[R2 overview](https://developers.cloudflare.com/r2/).
+
+1. In the dashboard open **R2 Object Storage** and enable it. Cloudflare asks
+   for a payment card here. The free tier includes 10 GB of storage and a
+   million writes a month; a Terraform state file is a few kilobytes.
+   [R2 pricing](https://developers.cloudflare.com/r2/pricing/).
+2. Log in to Wrangler, Cloudflare's command line tool, from your terminal.
+   It opens a browser window.
+
+   ```sh
+   npx wrangler login
+   ```
+
+3. Create the bucket. This repo uses `tfstate-demos`; pick your
+   own name, bucket names are unique per account.
+
+   ```sh
+   npx wrangler r2 bucket create tfstate-demos
+   ```
+
+Write the bucket name down. Step 7 puts it in `infra/backend.config`.
+
+Terraform cannot create this bucket for you, because the bucket has to exist
+before Terraform can store anything. This is the one piece of infrastructure
+you create by hand.
+[Wrangler commands](https://developers.cloudflare.com/workers/wrangler/commands/).
