@@ -192,3 +192,45 @@ files so the pipeline has something to deploy. Replace them with your own.
 
 `404.html` at the root of the folder is served for unknown paths.
 [Pages serving behaviour](https://developers.cloudflare.com/pages/configuration/serving-pages/).
+
+## Step 7: Describe the hosting in Terraform
+
+Terraform turns infrastructure into text. You write what you want, run
+`terraform apply`, and Terraform calls the Cloudflare API to make it so. Run
+it again after an edit and it changes only what differs.
+[What is Terraform](https://developer.hashicorp.com/terraform/intro).
+
+Terraform reads every `.tf` file in `infra/` as one configuration.
+
+| File               | What it does                                                     |
+| ------------------ | ---------------------------------------------------------------- |
+| `providers.tf`     | Loads the Cloudflare plugin. Declares that state lives in an S3-compatible store. |
+| `pages.tf`         | The Pages project, and your domain attached to it.               |
+| `dns.tf`           | A CNAME record pointing your domain at the project.              |
+| `variables.tf`     | Inputs: hostname, project name, record name, ids and token.      |
+| `outputs.tf`       | Values printed after apply, such as the site URL.                |
+| `terraform.tfvars` | Your non-secret inputs. Edit this one.                           |
+| `backend.config`   | Where the state file lives. Edit the bucket name.                |
+
+Edit two files:
+
+1. `infra/terraform.tfvars`
+
+   ```hcl
+   site_name       = "blog.example.com"   # hostname the site is served on
+   dns_record_name = "blog"               # "@" for example.com itself
+   project_name    = "static-hosting-cloudflare-pages"   # becomes <project_name>.pages.dev
+   ```
+
+2. `infra/backend.config`: set `bucket` to the name from step 4.
+
+The rest of `backend.config` is copied from
+[Cloudflare's R2 backend guide](https://developers.cloudflare.com/terraform/advanced-topics/remote-backend/).
+The `skip_*` flags stop Terraform from calling AWS-only services that R2 does
+not have. `use_lockfile` makes Terraform write a lock object next to the state
+so two runs cannot apply at the same time.
+
+Resource reference for the Cloudflare plugin:
+[cloudflare_pages_project](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/pages_project),
+[cloudflare_pages_domain](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/pages_domain),
+[cloudflare_dns_record](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/dns_record).
