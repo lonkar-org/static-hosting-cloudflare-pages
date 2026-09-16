@@ -179,3 +179,16 @@ You now hold five values. Keep them in a password manager until step 9.
 | R2 access key id      | step 5 |
 | R2 secret access key  | step 5 |
 | Cloudflare API token  | step 5 |
+
+## Step 6: Add the site
+
+`site/` holds what Cloudflare Pages serves. This repo ships two plain HTML
+files so the pipeline has something to deploy. Replace them with your own.
+
+- Plain HTML, CSS and JS: put the files in `site/`.
+- A generator such as Vite, Astro or Hugo: keep the source wherever you like
+  and make the build write to `site/`, or point the deploy step in step 8 at
+  your build's output folder.
+
+`404.html` at the root of the folder is served for unknown paths.
+[Pages serving behaviour](https://developers.cloudflare.com/pages/configuration/serving-pages/).
