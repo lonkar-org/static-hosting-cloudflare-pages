@@ -52,3 +52,16 @@ Security habits worth adopting from the start:
   and [Cloudflare](https://developers.cloudflare.com/fundamentals/user-profiles/2fa/).
 - Never commit a token or secret. `.gitignore` in this repo excludes `.env`,
   Terraform state and plan files.
+
+## Step 2: Create a Cloudflare account
+
+1. Sign up at [dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up)
+   with the email from step 1. Verify the email.
+2. Turn on two-factor authentication:
+   [Cloudflare 2FA guide](https://developers.cloudflare.com/fundamentals/user-profiles/2fa/).
+3. Note your **account id**. It is on the right side of any zone overview
+   page once you have a domain, and in the URL of the dashboard after login:
+   `dash.cloudflare.com/<account id>`.
+   [Find account and zone IDs](https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/).
+
+The free plan covers everything in this repo. Do not upgrade.
