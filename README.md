@@ -125,3 +125,57 @@ Terraform cannot create this bucket for you, because the bucket has to exist
 before Terraform can store anything. This is the one piece of infrastructure
 you create by hand.
 [Wrangler commands](https://developers.cloudflare.com/workers/wrangler/commands/).
+
+## Step 5: Create two API tokens
+
+Tokens let Terraform and Wrangler act on your Cloudflare account without your
+password. Scope each one to the least it needs.
+
+**R2 token**, for reading and writing the state file.
+
+1. Dashboard, **R2 Object Storage**, **Manage API tokens**, **Create API token**.
+2. Permission: **Object Read and Write**. Specify bucket: the one from step 4.
+3. Copy the **Access Key ID** and **Secret Access Key**. The secret is shown
+   once.
+
+[R2 API tokens](https://developers.cloudflare.com/r2/api/tokens/).
+
+**Cloudflare API token**, for creating the Pages project and the DNS record.
+
+1. Dashboard, profile menu, **My Profile**, **API Tokens**, **Create Token**,
+   **Create Custom Token**.
+2. Permissions, two rows:
+   - Account, **Cloudflare Pages**, Edit
+   - Zone, **DNS**, Edit
+3. Zone Resources: Include, Specific zone, your domain.
+4. Create, then copy the token. Also shown once.
+
+[Create an API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/).
+
+Check both tokens before going further. Every mistake below shows up later
+as a bare "Authentication error" or "AccessDenied", so two curl calls now save
+a confusing failure in step 9. Replace the placeholders with your values:
+
+```sh
+# Cloudflare token: both calls must print "success":true
+curl -s -H "Authorization: Bearer <cloudflare api token>" \
+  "https://api.cloudflare.com/client/v4/accounts/<account id>/pages/projects" | head -c 120; echo
+curl -s -H "Authorization: Bearer <cloudflare api token>" \
+  "https://api.cloudflare.com/client/v4/zones/<zone id>/dns_records?per_page=1" | head -c 120; echo
+```
+
+For the R2 token, the quickest check is step 10: `terraform init` against the
+bucket. The mistakes I made while writing this: pasted the R2 token where the
+Cloudflare token goes, scoped the R2 token to a bucket that no longer
+existed, and forgot the account-level Pages permission on the Cloudflare
+token. Each one was a bare authentication error with no hint which token.
+
+You now hold five values. Keep them in a password manager until step 9.
+
+| Value                 | From   |
+| --------------------- | ------ |
+| account id            | step 2 |
+| zone id               | step 3 |
+| R2 access key id      | step 5 |
+| R2 secret access key  | step 5 |
+| Cloudflare API token  | step 5 |
