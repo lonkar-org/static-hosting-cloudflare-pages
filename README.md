@@ -261,3 +261,31 @@ Edit one thing: `--project-name=static-hosting-cloudflare-pages` on the last ste
 
 The tokens appear only as `${{ secrets.NAME }}`. Step 9 stores them in GitHub.
 [Using secrets in GitHub Actions](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions).
+
+## Step 9: Create the GitHub repo, add secrets, push
+
+1. Create your repository. This repo is a
+   [template repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-template-repository),
+   so **Use this template** on GitHub gives you a copy without this history.
+   [Create a repository from a template](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+   Or clone and push to a new empty repo.
+2. Repository, **Settings**, **Secrets and variables**, **Actions**,
+   **New repository secret**. Add the five values from step 5:
+
+   | Secret name             | Value                 |
+   | ----------------------- | --------------------- |
+   | `CLOUDFLARE_ACCOUNT_ID` | account id            |
+   | `CLOUDFLARE_ZONE_ID`    | zone id               |
+   | `CLOUDFLARE_API_TOKEN`  | Cloudflare API token  |
+   | `R2_ACCESS_KEY_ID`      | R2 access key id      |
+   | `R2_SECRET_ACCESS_KEY`  | R2 secret access key  |
+
+3. Commit your edits from steps 6 to 8 and push to `main`.
+4. Open the **Actions** tab and watch the run. The plan step lists three
+   resources to add. Apply creates them. Deploy uploads the site.
+5. Open `https://<your hostname>`. Cloudflare issues the certificate after
+   the DNS record exists, which takes a minute or two on first deploy. Until
+   then the browser may show a certificate warning. Wait, then reload.
+
+From now on, every push to `main` redeploys. Every push to another branch
+shows a plan and touches nothing.
